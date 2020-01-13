@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="ScreenUI">
+  <grid id="27dc6" binding="panel1" default-binding="true" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">
+    <constraints>
+      <xy x="188" y="1248" width="319" height="535"/>
+    </constraints>
+    <properties>
+      <preferredSize width="350" height="500"/>
+    </properties>
+    <border type="bevel-lowered"/>
+    <children>
+      <component id="9d6e5" class="javax.swing.JTextField" binding="etTextTextField" default-binding="true">
+        <constraints/>
+        <properties>
+          <preferredSize width="200" height="26"/>
+          <text value=""/>
+        </properties>
+      </component>
+      <component id="b00cd" class="javax.swing.JButton" binding="btnSendButton" default-binding="true">
+        <constraints/>
+        <properties>
+          <text value="Send"/>
+        </properties>
+      </component>
+      <component id="c8d8a" class="javax.swing.JTextField" binding="etAdbPathTextField" default-binding="true">
+        <constraints/>
+        <properties>
+          <preferredSize width="300" height="26"/>
+          <text value=""/>
+        </properties>
+      </component>
+    </children>
+  </grid>
+</form>
