@@ -2,7 +2,7 @@
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="ScreenUI">
   <grid id="27dc6" binding="panel1" default-binding="true" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">
     <constraints>
-      <xy x="188" y="1248" width="319" height="535"/>
+      <xy x="25" y="17" width="319" height="535"/>
     </constraints>
     <properties>
       <preferredSize width="350" height="500"/>
@@ -27,6 +27,13 @@
         <properties>
           <preferredSize width="300" height="26"/>
           <text value=""/>
+        </properties>
+      </component>
+      <component id="6485a" class="javax.swing.JList" binding="listHistory">
+        <constraints/>
+        <properties>
+          <model/>
+          <preferredSize width="200" height="400"/>
         </properties>
       </component>
     </children>
