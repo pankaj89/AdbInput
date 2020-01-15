@@ -1,8 +1,10 @@
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import org.apache.http.util.TextUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -16,29 +18,30 @@ import java.util.ArrayList;
  */
 public class HomeScreen extends JPanel {
 
-    JList listHistory;
-    JButton btnSend;
-    JTextField textInputField;
+    private JList listHistory;
+    private JButton btnSend;
+    private JTextField textInputField;
     private DefaultListModel<String> list = new DefaultListModel<>();
+    private JLabel labelAbout;
 
     private String adbPath;
     private PropertiesComponent propertiesComponent;
     private MyService myService;
 
+//    public HomeScreen(String adbPath) {
+//    	
+//    }
     /**
      * Create the panel.
      */
     public HomeScreen(String adbPath) {
         setPreferredSize(new Dimension(320, 500));
 
-        ImageIcon icon = new ImageIcon(HomeScreen.class.getResource("/icons/adbicon.png"));
+        ImageIcon icon = new ImageIcon(HomeScreen.class.getResource("/icons/adbicon_l.png"));
         SpringLayout springLayout = new SpringLayout();
         setLayout(springLayout);
         JLabel iconLabel = new JLabel(icon);
-        springLayout.putConstraint(SpringLayout.NORTH, iconLabel, 10, SpringLayout.NORTH, this);
-        iconLabel.setPreferredSize(new Dimension(150, 150));
-        iconLabel.setMinimumSize(new Dimension(50, 50));
-        iconLabel.setMaximumSize(new Dimension(200, 200));
+        springLayout.putConstraint(SpringLayout.NORTH, iconLabel, 0, SpringLayout.NORTH, this);
         iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         add(iconLabel);
 
@@ -61,7 +64,12 @@ public class HomeScreen extends JPanel {
         listHistory = new JBList();
         JBScrollPane jbScrollPane = new JBScrollPane(listHistory);
 
+        labelAbout = new JLabel("About");
+        add(labelAbout);
+
         listHistory.setBorder(new EmptyBorder(10, 10, 10, 10));
+        springLayout.putConstraint(SpringLayout.NORTH, labelAbout, -8, SpringLayout.NORTH, iconLabel);
+        springLayout.putConstraint(SpringLayout.EAST, labelAbout, -8, SpringLayout.EAST, iconLabel);
         springLayout.putConstraint(SpringLayout.SOUTH, btnSend, -8, SpringLayout.NORTH, jbScrollPane);
         springLayout.putConstraint(SpringLayout.SOUTH, textInputField, -8, SpringLayout.NORTH, jbScrollPane);
         springLayout.putConstraint(SpringLayout.NORTH, jbScrollPane, 194, SpringLayout.NORTH, this);
@@ -77,12 +85,64 @@ public class HomeScreen extends JPanel {
 
     }
 
+    public class SampleDialogWrapper extends DialogWrapper {
+
+        public SampleDialogWrapper() {
+            super(true); // use current window as parent
+            init();
+            setTitle("About");
+        }
+
+        class OkAction extends AbstractAction {
+            SampleDialogWrapper sampleDialogWrapper;
+            OkAction(SampleDialogWrapper sampleDialogWrapper){
+                super("Ok");
+                this.sampleDialogWrapper=sampleDialogWrapper;
+            }
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                sampleDialogWrapper.dispose();
+            }
+        }
+        @NotNull
+        @Override
+        protected Action[] createActions() {
+//            return super.createActions();
+            return new Action[]{new OkAction(this)};
+        }
+
+        @Override
+        protected JComponent createCenterPanel() {
+            JPanel dialogPanel = new JPanel();
+            dialogPanel.setLayout(new BoxLayout(dialogPanel, BoxLayout.Y_AXIS));
+            dialogPanel.setPreferredSize(new Dimension(350, 100));
+
+            JLabel label = new JLabel("Developed by", SwingConstants.CENTER);
+            label.setHorizontalAlignment(SwingConstants.CENTER);
+            label.setVerticalAlignment(SwingConstants.CENTER);
+            dialogPanel.add(label);
+
+            JLabel labelName = new JLabel("Pankaj Sharma", SwingConstants.CENTER);
+            labelName.setHorizontalAlignment(SwingConstants.CENTER);
+            labelName.setVerticalAlignment(SwingConstants.CENTER);
+            dialogPanel.add(labelName);
+
+            return dialogPanel;
+        }
+    }
+
     private void initComponents() {
         propertiesComponent = PropertiesComponent.getInstance();
         myService = ServiceManager.getService(MyService.class);
         listHistory.setModel(list);
         listHistory.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
+        labelAbout.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                new SampleDialogWrapper().show();
+            }
+        });
         listHistory.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent evt) {
                 boolean isRightClick = SwingUtilities.isRightMouseButton(evt);
@@ -149,6 +209,7 @@ public class HomeScreen extends JPanel {
         if (index != -1) {
             if (list.size() > index) {
                 list.remove(index);
+                myService.items.remove(index);
                 if (list.size() > (index)) {
                     listHistory.setSelectedIndex(index);
                 } else if (list.size() > (index - 1)) {
