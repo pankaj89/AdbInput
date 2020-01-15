@@ -16,10 +16,15 @@ import java.util.Properties;
 public class MyToolWindowFactory implements ToolWindowFactory {
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
-        String etAdbPath = getAdbPath(project);
-        ScreenUI myToolWindow = new ScreenUI(project, toolWindow, etAdbPath);
+        String adbPath = getAdbPath(project);
+        /*ScreenUI myToolWindow = new ScreenUI(project, toolWindow, adbPath);
         ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
         Content content = contentFactory.createContent(myToolWindow.getContent(), "", false);
+        toolWindow.getContentManager().addContent(content);*/
+
+        HomeScreen homeScreen = new HomeScreen(adbPath);
+        ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
+        Content content = contentFactory.createContent(homeScreen, "", false);
         toolWindow.getContentManager().addContent(content);
     }
 
