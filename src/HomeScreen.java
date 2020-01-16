@@ -4,13 +4,18 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import org.apache.http.util.TextUtils;
+import org.jdesktop.swingx.JXImageView;
+import org.jdesktop.swingx.color.ColorUtil;
 import org.jetbrains.annotations.NotNull;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 /**
@@ -40,9 +45,55 @@ public class HomeScreen extends JPanel {
         ImageIcon icon = new ImageIcon(HomeScreen.class.getResource("/icons/adbicon_l.png"));
         SpringLayout springLayout = new SpringLayout();
         setLayout(springLayout);
-        JLabel iconLabel = new JLabel(icon);
-        springLayout.putConstraint(SpringLayout.NORTH, iconLabel, 0, SpringLayout.NORTH, this);
+
+        labelAbout = new JLabel("About");
+        add(labelAbout);
+
+        JXImageView iconLabel = new JXImageView();
+//        ImageComponent imageComponent =new ImageComponent();
+
+        try
+        {
+//            iconLabel.setBackgroundPainter(new MattePainter(Color.getColor("#00000000")));
+
+            try {
+                Field field = iconLabel.getClass().getDeclaredField("checkerPaint");
+                field.setAccessible(true);
+                field.set(iconLabel, ColorUtil.getCheckerPaint(Color.getColor("#00000000"), Color.getColor("#00000000"), 1));
+            } catch (NoSuchFieldException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+
+            BufferedImage image = ImageIO.read(getClass().getResource("/icons/adbicon_l.png"));
+            iconLabel.setImage(image);
+//            iconLabel.setBackgroundPainter(new MattePainter(Color.RED));
+//            iconLabel.setBackground(Color.RED);
+            iconLabel.setDragEnabled(false);
+            iconLabel.setScale(0.5);
+            iconLabel.setEditable(false);
+
+
+//            imageComponent.getDocument().setValue(image);
+//            imageComponent.setCanvasSize(200,150);
+//            imageComponent.setAlignmentX(Component.CENTER_ALIGNMENT);
+        }
+        catch (IOException ex)
+        {
+            ex.printStackTrace();
+        }
+//        springLayout.putConstraint(SpringLayout.NORTH, iconLabel, 0, SpringLayout.NORTH, this);
+//        iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+//        add(iconLabel);
+
+//        JLabel iconLabel = new JLabel();
+//        iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
+//        iconLabel.setVerticalAlignment(SwingConstants.CENTER);
+        springLayout.putConstraint(SpringLayout.NORTH, iconLabel, 10, SpringLayout.NORTH, this);
         iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+//        iconLabel.setPreferredSize(new Dimension(40,40));
+//        iconLabel.add(imageComponent);
         add(iconLabel);
 
         textInputField = new JTextField();
@@ -64,8 +115,7 @@ public class HomeScreen extends JPanel {
         listHistory = new JBList();
         JBScrollPane jbScrollPane = new JBScrollPane(listHistory);
 
-        labelAbout = new JLabel("About");
-        add(labelAbout);
+
 
         listHistory.setBorder(new EmptyBorder(10, 10, 10, 10));
         springLayout.putConstraint(SpringLayout.NORTH, labelAbout, -8, SpringLayout.NORTH, iconLabel);
