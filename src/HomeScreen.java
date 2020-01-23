@@ -1,5 +1,8 @@
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.IDevice;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
@@ -14,7 +17,9 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 
@@ -26,6 +31,7 @@ public class HomeScreen extends JPanel {
     private JList listHistory;
     private JButton btnSend;
     private JTextField textInputField;
+    private JComboBox deviceListComboBox;
     private DefaultListModel<String> list = new DefaultListModel<>();
     private JLabel labelAbout;
 
@@ -36,13 +42,13 @@ public class HomeScreen extends JPanel {
 //    public HomeScreen(String adbPath) {
 //    	
 //    }
+
     /**
      * Create the panel.
      */
     public HomeScreen(String adbPath) {
         setPreferredSize(new Dimension(320, 500));
 
-        ImageIcon icon = new ImageIcon(HomeScreen.class.getResource("/icons/adbicon_l.png"));
         SpringLayout springLayout = new SpringLayout();
         setLayout(springLayout);
 
@@ -50,51 +56,36 @@ public class HomeScreen extends JPanel {
         add(labelAbout);
 
         JXImageView iconLabel = new JXImageView();
-//        ImageComponent imageComponent =new ImageComponent();
 
-        try
-        {
-//            iconLabel.setBackgroundPainter(new MattePainter(Color.getColor("#00000000")));
+        try {
 
             try {
                 Field field = iconLabel.getClass().getDeclaredField("checkerPaint");
                 field.setAccessible(true);
-                field.set(iconLabel, ColorUtil.getCheckerPaint(Color.getColor("#00000000"), Color.getColor("#00000000"), 1));
+
+                Color c = new Color(1f, 0f, 0f, 0f);
+                field.set(iconLabel, ColorUtil.getCheckerPaint(c, c, 1));
             } catch (NoSuchFieldException e) {
                 e.printStackTrace();
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
 
-            BufferedImage image = ImageIO.read(getClass().getResource("/icons/adbicon_l.png"));
+            BufferedImage image = ImageIO.read(getClass().getResource("/icons/adb_icon_t.png"));
             iconLabel.setImage(image);
-//            iconLabel.setBackgroundPainter(new MattePainter(Color.RED));
-//            iconLabel.setBackground(Color.RED);
             iconLabel.setDragEnabled(false);
-            iconLabel.setScale(0.5);
+            iconLabel.setScale(0.4);
             iconLabel.setEditable(false);
 
-
-//            imageComponent.getDocument().setValue(image);
-//            imageComponent.setCanvasSize(200,150);
-//            imageComponent.setAlignmentX(Component.CENTER_ALIGNMENT);
-        }
-        catch (IOException ex)
-        {
+        } catch (IOException ex) {
             ex.printStackTrace();
         }
-//        springLayout.putConstraint(SpringLayout.NORTH, iconLabel, 0, SpringLayout.NORTH, this);
-//        iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-//        add(iconLabel);
-
-//        JLabel iconLabel = new JLabel();
-//        iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
-//        iconLabel.setVerticalAlignment(SwingConstants.CENTER);
         springLayout.putConstraint(SpringLayout.NORTH, iconLabel, 10, SpringLayout.NORTH, this);
         iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-//        iconLabel.setPreferredSize(new Dimension(40,40));
-//        iconLabel.add(imageComponent);
         add(iconLabel);
+
+        deviceListComboBox = new ComboBox();
+
 
         textInputField = new JTextField();
         springLayout.putConstraint(SpringLayout.SOUTH, iconLabel, -6, SpringLayout.NORTH, textInputField);
@@ -105,6 +96,7 @@ public class HomeScreen extends JPanel {
         textInputField.setColumns(10);
 
         btnSend = new JButton("Send");
+        btnSend.setFocusable(false);
         springLayout.putConstraint(SpringLayout.NORTH, btnSend, 6, SpringLayout.SOUTH, iconLabel);
         springLayout.putConstraint(SpringLayout.EAST, iconLabel, 0, SpringLayout.EAST, btnSend);
         springLayout.putConstraint(SpringLayout.EAST, textInputField, -6, SpringLayout.WEST, btnSend);
@@ -116,9 +108,8 @@ public class HomeScreen extends JPanel {
         JBScrollPane jbScrollPane = new JBScrollPane(listHistory);
 
 
-
         listHistory.setBorder(new EmptyBorder(10, 10, 10, 10));
-        springLayout.putConstraint(SpringLayout.NORTH, labelAbout, -8, SpringLayout.NORTH, iconLabel);
+        springLayout.putConstraint(SpringLayout.NORTH, labelAbout, 0, SpringLayout.NORTH, iconLabel);
         springLayout.putConstraint(SpringLayout.EAST, labelAbout, -8, SpringLayout.EAST, iconLabel);
         springLayout.putConstraint(SpringLayout.SOUTH, btnSend, -8, SpringLayout.NORTH, jbScrollPane);
         springLayout.putConstraint(SpringLayout.SOUTH, textInputField, -8, SpringLayout.NORTH, jbScrollPane);
@@ -145,15 +136,18 @@ public class HomeScreen extends JPanel {
 
         class OkAction extends AbstractAction {
             SampleDialogWrapper sampleDialogWrapper;
-            OkAction(SampleDialogWrapper sampleDialogWrapper){
+
+            OkAction(SampleDialogWrapper sampleDialogWrapper) {
                 super("Ok");
-                this.sampleDialogWrapper=sampleDialogWrapper;
+                this.sampleDialogWrapper = sampleDialogWrapper;
             }
+
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 sampleDialogWrapper.dispose();
             }
         }
+
         @NotNull
         @Override
         protected Action[] createActions() {
@@ -195,12 +189,10 @@ public class HomeScreen extends JPanel {
         });
         listHistory.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent evt) {
-                boolean isRightClick = SwingUtilities.isRightMouseButton(evt);
+//                boolean isRightClick = SwingUtilities.isRightMouseButton(evt);
                 int index = listHistory.locationToIndex(evt.getPoint());
                 if (index != -1) {
-                    if (isRightClick) {
-                        deleteValue(index);
-                    } else if (evt.getClickCount() == 2) {
+                    if (evt.getClickCount() == 2) {
                         runCommand(list.get(index));
                     }
                 }
@@ -221,6 +213,29 @@ public class HomeScreen extends JPanel {
                 } else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                     int index = listHistory.getSelectedIndex();
                     runCommand(list.get(index));
+                } else if (e.getKeyCode() == KeyEvent.VK_UP) {
+                    if (listHistory.getSelectedIndex() == 0) {
+                        textInputField.requestFocus();
+                    }
+                }
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+
+            }
+        });
+
+        textInputField.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+                    listHistory.requestFocus();
                 }
             }
 
@@ -233,16 +248,17 @@ public class HomeScreen extends JPanel {
         textInputField.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(!TextUtils.isEmpty(textInputField.getText())) {
+                if (!TextUtils.isEmpty(textInputField.getText())) {
                     runCommand(textInputField.getText());
                     saveValue();
                 }
             }
         });
+
         btnSend.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(!TextUtils.isEmpty(textInputField.getText())) {
+                if (!TextUtils.isEmpty(textInputField.getText())) {
                     runCommand(textInputField.getText());
                     saveValue();
                     textInputField.requestFocus();
@@ -253,6 +269,8 @@ public class HomeScreen extends JPanel {
         for (String item : myService.items) {
             list.addElement(item);
         }
+
+        getDeviceList();
     }
 
     private void deleteValue(int index) {
@@ -274,9 +292,11 @@ public class HomeScreen extends JPanel {
         if (myService.items == null) {
             myService.items = new ArrayList<>();
         }
-        myService.items.add(value);
+        if (!myService.items.contains(value)) {
+            myService.items.add(value);
+            list.add(0, value);
+        }
         textInputField.setText("");
-        list.add(0, value);
     }
 
     private void runCommand(String text) {
@@ -290,10 +310,56 @@ public class HomeScreen extends JPanel {
     private void execute(String[] args) {
         try {
             Process proc = new ProcessBuilder(args).start();
+
+            InputStreamReader isReader = new InputStreamReader(proc.getInputStream());
+            //Creating a BufferedReader object
+            BufferedReader reader = new BufferedReader(isReader);
+            StringBuffer sb = new StringBuffer();
+            String str;
+            while ((str = reader.readLine()) != null) {
+                sb.append(str);
+            }
+
+
             System.out.println("Run Succes");
         } catch (IOException e1) {
             e1.printStackTrace();
             System.out.println("Exception");
         }
+    }
+
+    private ArrayList<DeviceInfo> devices = new ArrayList<DeviceInfo>();
+
+    private void getDeviceList() {
+        AndroidDebugBridge.initIfNeeded(false);
+        AndroidDebugBridge.createBridge(adbPath, false);
+        AndroidDebugBridge.addDeviceChangeListener(new AndroidDebugBridge.IDeviceChangeListener() {
+            @Override
+            public void deviceConnected(IDevice iDevice) {
+                DeviceInfo deviceInfo = new DeviceInfo(iDevice);
+                System.out.println("Device Connected : " + deviceInfo.getFullName());
+            }
+
+            @Override
+            public void deviceDisconnected(IDevice iDevice) {
+                DeviceInfo deviceInfo = new DeviceInfo(iDevice);
+                System.out.println("Device Disconnected : " + deviceInfo.getFullName());
+                if (devices.contains(deviceInfo)) {
+                    devices.remove(deviceInfo);
+                }
+            }
+
+            @Override
+            public void deviceChanged(IDevice iDevice, int i) {
+                DeviceInfo deviceInfo = new DeviceInfo(iDevice);
+                System.out.println("Device Changed : " + deviceInfo.getFullName());
+                if (devices.contains(deviceInfo)) {
+                    int index = devices.indexOf(deviceInfo);
+                    devices.set(index, deviceInfo);
+                } else {
+                    devices.add(deviceInfo);
+                }
+            }
+        });
     }
 }
