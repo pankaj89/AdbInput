@@ -7,6 +7,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import org.apache.http.util.TextUtils;
+import org.jdesktop.swingx.JXComboBox;
 import org.jdesktop.swingx.JXImageView;
 import org.jdesktop.swingx.color.ColorUtil;
 import org.jetbrains.annotations.NotNull;
@@ -34,6 +35,7 @@ public class HomeScreen extends JPanel {
     private JComboBox deviceListComboBox;
     private DefaultListModel<String> list = new DefaultListModel<>();
     private JLabel labelAbout;
+    private JComboBox deviceComboBox;
 
     private String adbPath;
     private PropertiesComponent propertiesComponent;
@@ -80,44 +82,61 @@ public class HomeScreen extends JPanel {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-        springLayout.putConstraint(SpringLayout.NORTH, iconLabel, 10, SpringLayout.NORTH, this);
         iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         add(iconLabel);
 
         deviceListComboBox = new ComboBox();
 
+//        JLabel iconLabel = new JLabel();
+        iconLabel.setPreferredSize(new Dimension(400, 130));
+        springLayout.putConstraint(SpringLayout.NORTH, iconLabel, 10, SpringLayout.NORTH, this);
+        iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        add(iconLabel);
+
+        deviceComboBox = new JXComboBox();
+        springLayout.putConstraint(SpringLayout.EAST, deviceComboBox, -10, SpringLayout.EAST, this);
+        deviceComboBox.setPreferredSize(new Dimension(80, 25));
+
+        add(deviceComboBox);
+
+        springLayout.putConstraint(SpringLayout.WEST, deviceComboBox, 10, SpringLayout.WEST, this);
+        springLayout.putConstraint(SpringLayout.NORTH, deviceComboBox, 10, SpringLayout.SOUTH, iconLabel);
 
         textInputField = new JTextField();
-        springLayout.putConstraint(SpringLayout.SOUTH, iconLabel, -6, SpringLayout.NORTH, textInputField);
-        springLayout.putConstraint(SpringLayout.NORTH, textInputField, 156, SpringLayout.NORTH, this);
+//        textInputField.setPreferredSize(new Dimension(80, 25));
+//        springLayout.putConstraint(SpringLayout.SOUTH, iconLabel, 0, SpringLayout.NORTH, textInputField);
+
         springLayout.putConstraint(SpringLayout.WEST, iconLabel, 0, SpringLayout.WEST, textInputField);
         springLayout.putConstraint(SpringLayout.WEST, textInputField, 10, SpringLayout.WEST, this);
         add(textInputField);
-        textInputField.setColumns(10);
 
         btnSend = new JButton("Send");
+        springLayout.putConstraint(SpringLayout.NORTH, btnSend, 0, SpringLayout.SOUTH, deviceComboBox);
+//        btnSend.setPreferredSize(new Dimension(80, 200));
         btnSend.setFocusable(false);
-        springLayout.putConstraint(SpringLayout.NORTH, btnSend, 6, SpringLayout.SOUTH, iconLabel);
+        springLayout.putConstraint(SpringLayout.NORTH, textInputField, 10, SpringLayout.SOUTH, deviceComboBox);
+        springLayout.putConstraint(SpringLayout.NORTH, btnSend, 6, SpringLayout.SOUTH, deviceComboBox);
+
         springLayout.putConstraint(SpringLayout.EAST, iconLabel, 0, SpringLayout.EAST, btnSend);
         springLayout.putConstraint(SpringLayout.EAST, textInputField, -6, SpringLayout.WEST, btnSend);
-        springLayout.putConstraint(SpringLayout.WEST, btnSend, -80, SpringLayout.EAST, this);
+//        springLayout.putConstraint(SpringLayout.SOUTH, textInputField, 0, SpringLayout.SOUTH, btnSend);
+
         springLayout.putConstraint(SpringLayout.EAST, btnSend, -10, SpringLayout.EAST, this);
         add(btnSend);
 
         listHistory = new JBList();
         JBScrollPane jbScrollPane = new JBScrollPane(listHistory);
+        springLayout.putConstraint(SpringLayout.NORTH, jbScrollPane, 10, SpringLayout.SOUTH, textInputField);
+//        springLayout.putConstraint(SpringLayout.SOUTH, btnSend, -10, SpringLayout.NORTH, jbScrollPane);
 
-
-        listHistory.setBorder(new EmptyBorder(10, 10, 10, 10));
+        listHistory.setBorder(new EmptyBorder(0, 0, 0, 0));
         springLayout.putConstraint(SpringLayout.NORTH, labelAbout, 0, SpringLayout.NORTH, iconLabel);
         springLayout.putConstraint(SpringLayout.EAST, labelAbout, -8, SpringLayout.EAST, iconLabel);
-        springLayout.putConstraint(SpringLayout.SOUTH, btnSend, -8, SpringLayout.NORTH, jbScrollPane);
-        springLayout.putConstraint(SpringLayout.SOUTH, textInputField, -8, SpringLayout.NORTH, jbScrollPane);
-        springLayout.putConstraint(SpringLayout.NORTH, jbScrollPane, 194, SpringLayout.NORTH, this);
         springLayout.putConstraint(SpringLayout.WEST, jbScrollPane, 10, SpringLayout.WEST, this);
         springLayout.putConstraint(SpringLayout.SOUTH, jbScrollPane, -10, SpringLayout.SOUTH, this);
         springLayout.putConstraint(SpringLayout.EAST, jbScrollPane, -10, SpringLayout.EAST, this);
         add(jbScrollPane);
+
 
         listHistory.setModel(list);
 
@@ -193,7 +212,13 @@ public class HomeScreen extends JPanel {
                 int index = listHistory.locationToIndex(evt.getPoint());
                 if (index != -1) {
                     if (evt.getClickCount() == 2) {
-                        runCommand(list.get(index));
+                        if (deviceComboBox.getSelectedIndex()>=0 && devices.size() > deviceComboBox.getSelectedIndex()) {
+                            DeviceInfo device = devices.get(deviceComboBox.getSelectedIndex());
+                            runCommand(device.id, list.get(index));
+                        } else {
+                            runCommand("", list.get(index));
+                        }
+
                     }
                 }
             }
@@ -212,7 +237,12 @@ public class HomeScreen extends JPanel {
                     deleteValue(index);
                 } else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                     int index = listHistory.getSelectedIndex();
-                    runCommand(list.get(index));
+                    if (deviceComboBox.getSelectedIndex()>=0 && devices.size() > deviceComboBox.getSelectedIndex()) {
+                        DeviceInfo device = devices.get(deviceComboBox.getSelectedIndex());
+                        runCommand(device.id, list.get(index));
+                    } else {
+                        runCommand("", list.get(index));
+                    }
                 } else if (e.getKeyCode() == KeyEvent.VK_UP) {
                     if (listHistory.getSelectedIndex() == 0) {
                         textInputField.requestFocus();
@@ -249,7 +279,12 @@ public class HomeScreen extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (!TextUtils.isEmpty(textInputField.getText())) {
-                    runCommand(textInputField.getText());
+                    if (deviceComboBox.getSelectedIndex() >= 0 && devices.size() > deviceComboBox.getSelectedIndex()) {
+                        DeviceInfo device = devices.get(deviceComboBox.getSelectedIndex());
+                        runCommand(device.id, textInputField.getText());
+                    } else {
+                        runCommand("", textInputField.getText());
+                    }
                     saveValue();
                 }
             }
@@ -259,7 +294,12 @@ public class HomeScreen extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (!TextUtils.isEmpty(textInputField.getText())) {
-                    runCommand(textInputField.getText());
+                    if (deviceComboBox.getSelectedIndex()>=0 && devices.size() > deviceComboBox.getSelectedIndex()) {
+                        DeviceInfo device = devices.get(deviceComboBox.getSelectedIndex());
+                        runCommand(device.id, textInputField.getText());
+                    } else {
+                        runCommand("", textInputField.getText());
+                    }
                     saveValue();
                     textInputField.requestFocus();
                 }
@@ -270,7 +310,15 @@ public class HomeScreen extends JPanel {
             list.addElement(item);
         }
 
-        getDeviceList();
+        getDeviceList(new DeviceCallback() {
+            @Override
+            public void onDeviceRefresh(ArrayList<DeviceInfo> devices) {
+                deviceComboBox.removeAllItems();
+                for (DeviceInfo device : devices) {
+                    deviceComboBox.addItem(device.getFullName());
+                }
+            }
+        });
     }
 
     private void deleteValue(int index) {
@@ -299,12 +347,18 @@ public class HomeScreen extends JPanel {
         textInputField.setText("");
     }
 
-    private void runCommand(String text) {
+    private void runCommand(String device, String text) {
         //String[] clearAll = new String[]{adbPath, "shell", "input", "keyevent","--longpress", "$(echo 'KEYCODE_DEL %.0s' {1..250}"};
-        String[] type = new String[]{adbPath, "shell", "input", "text", "$(echo \"" + text + "\" | sed 's/ /\\%s/g')"};
+        if (TextUtils.isEmpty(device)) {
+            String[] type = new String[]{adbPath, "shell", "input", "text", "$(echo \"" + text + "\" | sed 's/ /\\%s/g')"};
+            //execute(clearAll);
+            execute(type);
+        } else {
+            String[] type = new String[]{adbPath, "-s", device, "shell", "input", "text", "$(echo \"" + text + "\" | sed 's/ /\\%s/g')"};
+            //execute(clearAll);
+            execute(type);
+        }
 
-        //execute(clearAll);
-        execute(type);
     }
 
     private void execute(String[] args) {
@@ -330,7 +384,11 @@ public class HomeScreen extends JPanel {
 
     private ArrayList<DeviceInfo> devices = new ArrayList<DeviceInfo>();
 
-    private void getDeviceList() {
+    interface DeviceCallback {
+        void onDeviceRefresh(ArrayList<DeviceInfo> devices);
+    }
+
+    private void getDeviceList(DeviceCallback deviceCallback) {
         AndroidDebugBridge.initIfNeeded(false);
         AndroidDebugBridge.createBridge(adbPath, false);
         AndroidDebugBridge.addDeviceChangeListener(new AndroidDebugBridge.IDeviceChangeListener() {
@@ -338,6 +396,15 @@ public class HomeScreen extends JPanel {
             public void deviceConnected(IDevice iDevice) {
                 DeviceInfo deviceInfo = new DeviceInfo(iDevice);
                 System.out.println("Device Connected : " + deviceInfo.getFullName());
+                if (devices.contains(deviceInfo)) {
+                    int index = devices.indexOf(deviceInfo);
+                    devices.set(index, deviceInfo);
+                } else {
+                    devices.add(deviceInfo);
+                }
+                if (deviceCallback != null) {
+                    deviceCallback.onDeviceRefresh(devices);
+                }
             }
 
             @Override
@@ -346,6 +413,9 @@ public class HomeScreen extends JPanel {
                 System.out.println("Device Disconnected : " + deviceInfo.getFullName());
                 if (devices.contains(deviceInfo)) {
                     devices.remove(deviceInfo);
+                }
+                if (deviceCallback != null) {
+                    deviceCallback.onDeviceRefresh(devices);
                 }
             }
 
@@ -358,6 +428,9 @@ public class HomeScreen extends JPanel {
                     devices.set(index, deviceInfo);
                 } else {
                     devices.add(deviceInfo);
+                }
+                if (deviceCallback != null) {
+                    deviceCallback.onDeviceRefresh(devices);
                 }
             }
         });
