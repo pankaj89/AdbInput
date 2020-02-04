@@ -2,7 +2,7 @@
     <id>com.master.studio.plugin.adb_input</id>
     <name>Adb Input</name>
     <version>1.0</version>
-    <vendor email="agnipankh.pankaj@gmail.com" url="https://github.com/pankaj89">Pankaj Sharma</vendor>
+    <vendor email="agnipankh.pankaj@gmail.com" url="https://pankaj89.github.io">Pankaj Sharma</vendor>
 
     <description><![CDATA[
       Adds capability to type to EditText in devices directly from Android Studio<br>
@@ -27,12 +27,8 @@
         <applicationService serviceImplementation="MyService"/>
         <!-- Add your extensions here -->
         <toolWindow
-                id="Adb Input" anchor="right" factoryClass="MyToolWindowFactory">
+                id="Adb Input" anchor="right" factoryClass="MyToolWindowFactory" icon="/icons/icon.png">
         </toolWindow>
     </extensions>
-
-    <actions>
-        <!-- Add your actions here -->
-    </actions>
 
 </idea-plugin>

@@ -221,7 +221,7 @@ public class HomeScreen extends JPanel {
             labelName.setVerticalAlignment(SwingConstants.CENTER);
             dialogPanel.add(labelName);
 
-            JLabel labelLink = new JLabel("https://github.com/pankaj89", SwingConstants.CENTER);
+            JLabel labelLink = new JLabel("https://pankaj89.github.io/", SwingConstants.CENTER);
             labelLink.setFont(new Font("Serif", Font.PLAIN, 18));
             labelLink.setForeground(Color.BLUE.darker());
             labelLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -231,7 +231,7 @@ public class HomeScreen extends JPanel {
                 public void mouseClicked(MouseEvent e) {
                     // the user clicks on the label
                     try {
-                        Desktop.getDesktop().browse(new URI("https://github.com/pankaj89"));
+                        Desktop.getDesktop().browse(new URI("https://pankaj89.github.io/"));
                     } catch (Exception e1) {
                         e1.printStackTrace();
                     }
